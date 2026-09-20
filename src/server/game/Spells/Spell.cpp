@@ -3864,12 +3864,10 @@ void Spell::cancel(bool bySelf)
         *m_selfContainer = nullptr;
 
     // Do not remove current far sight object (already done in Spell::EffectAddFarsight) to prevent from reset viewpoint to player
+    Unit* dynObjOwner = (m_caster->GetEntry() == WORLD_TRIGGER && m_originalCaster) ? m_originalCaster : m_caster;
     if (!(bySelf && m_spellInfo->HasEffect(SPELL_EFFECT_ADD_FARSIGHT)))
-    {
-        if (unitCaster)
-            unitCaster->RemoveDynObject(m_spellInfo->Id);
-    }
-
+        dynObjOwner->RemoveDynObject(m_spellInfo->Id);
+  
     if (m_spellInfo->IsChanneled()) // if not channeled then the object for the current cast wasn't summoned yet
     {
         if (unitCaster)
@@ -4618,6 +4616,13 @@ void Spell::finish(bool ok)
     // never finishes and re-executes the spell every update tick
     m_spellState = SPELL_STATE_FINISHED;
 
+    Unit* dynObjOwner = (m_caster->GetEntry() == WORLD_TRIGGER && m_originalCaster) ? m_originalCaster : m_caster;
+    if (m_spellInfo->IsChanneled())
+    {
+        dynObjOwner->RemoveDynObject(m_spellInfo->Id);
+        m_caster->RemoveGameObject(m_spellInfo->Id, true);
+    }
+    
     // FindMap() check: pending spell events are destroyed after the caster has left the map,
     // where resolving a unit-summoned caster's owner through ObjectAccessor would assert
     if (Player* modOwner = m_caster->FindMap() ? m_caster->GetSpellModOwner() : nullptr)

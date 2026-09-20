@@ -1772,13 +1772,16 @@ void GameObject::Use(Unit* user)
 
                             if (sScriptMgr->OnPlayerUpdateFishingSkill(player, skill, zoneSkill, chance, roll))
                                 player->UpdateFishingSkill();
+
+                            // Keep the bobber owned while loot is open, but clear the spell id so the
+                            // FinishSpell() below does not delete it out from under the loot window.
+                            // Must cover the junk branch too, otherwise junk loot is destroyed before
+                            // the client can take it.
+                            SetSpellId(0); // prevent removing unintended auras at Unit::RemoveGameObject
+
                             // but you will likely cause junk in areas that require a high fishing skill (not yet implemented)
                             if (chance >= roll)
                             {
-                                // Keep the bobber owned while loot is open, but clear the
-                                // spell id so finishing the fishing channel does not delete it.
-                                SetSpellId(0); // prevent removing unintended auras at Unit::RemoveGameObject
-
                                 // fishing pool catch
                                 if (fishingHole)
                                 {

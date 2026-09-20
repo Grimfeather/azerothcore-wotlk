@@ -1960,12 +1960,12 @@ bool Pet::unlearnSpell(uint32 spell_id, bool learn_prev, bool clear_ab)
 {
     if (removeSpell(spell_id, learn_prev, clear_ab))
     {
-        if (!m_loading)
+        /* if (!m_loading)
         {
             WorldPackets::Pet::PetUnlearnedSpell packet;
             packet.SpellID = spell_id;
             m_owner->SendDirectMessage(packet.Write());
-        }
+        } */
 
         return true;
     }
