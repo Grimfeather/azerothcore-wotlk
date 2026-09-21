@@ -3869,7 +3869,7 @@ void Spell::cancel(bool bySelf)
         if (unitCaster)
             unitCaster->RemoveDynObject(m_spellInfo->Id);
     }
-
+  
     if (m_spellInfo->IsChanneled()) // if not channeled then the object for the current cast wasn't summoned yet
     {
         if (unitCaster)
@@ -4617,7 +4617,7 @@ void Spell::finish(bool ok)
     // the state must be set even for non-unit casters, otherwise the SpellEvent
     // never finishes and re-executes the spell every update tick
     m_spellState = SPELL_STATE_FINISHED;
-
+    
     // FindMap() check: pending spell events are destroyed after the caster has left the map,
     // where resolving a unit-summoned caster's owner through ObjectAccessor would assert
     if (Player* modOwner = m_caster->FindMap() ? m_caster->GetSpellModOwner() : nullptr)
