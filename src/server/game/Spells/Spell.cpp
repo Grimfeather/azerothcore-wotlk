@@ -3863,9 +3863,13 @@ void Spell::cancel(bool bySelf)
     if (m_selfContainer && *m_selfContainer == this)
         *m_selfContainer = nullptr;
 
+    Unit* dynObjOwner = (unitCaster->GetEntry() == WORLD_TRIGGER && m_originalCaster) ? m_originalCaster : unitCaster;
+
     // Do not remove current far sight object (already done in Spell::EffectAddFarsight) to prevent from reset viewpoint to player
     if (!(bySelf && m_spellInfo->HasEffect(SPELL_EFFECT_ADD_FARSIGHT)))
     {
+        dynObjOwner->RemoveDynObject(m_spellInfo->Id);
+
         if (unitCaster)
             unitCaster->RemoveDynObject(m_spellInfo->Id);
     }
@@ -4617,7 +4621,23 @@ void Spell::finish(bool ok)
     // the state must be set even for non-unit casters, otherwise the SpellEvent
     // never finishes and re-executes the spell every update tick
     m_spellState = SPELL_STATE_FINISHED;
-    
+
+    Unit* dynObjOwner = nullptr;
+    if (m_caster->GetEntry() == WORLD_TRIGGER && m_originalCaster)
+        dynObjOwner = m_originalCaster;
+    else
+        dynObjOwner = m_caster->ToUnit();
+
+    if (m_spellInfo->IsChanneled())
+    {
+        if (dynObjOwner)
+        {
+            dynObjOwner->RemoveDynObject(m_spellInfo->Id);
+            if (GameObject* gameObject = dynObjOwner->GetGameObject(m_spellInfo->Id))
+                dynObjOwner->RemoveGameObject(gameObject, true);
+        }
+    }
+
     // FindMap() check: pending spell events are destroyed after the caster has left the map,
     // where resolving a unit-summoned caster's owner through ObjectAccessor would assert
     if (Player* modOwner = m_caster->FindMap() ? m_caster->GetSpellModOwner() : nullptr)
