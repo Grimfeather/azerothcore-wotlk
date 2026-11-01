@@ -62,10 +62,11 @@ void WorldSession::HandleAttackSwingOpcode(WorldPacket& recvData)
         }
     }
 
-    if (!_player->Attack(pEnemy, true))
+    // Attack() also returns false when already melee attacking pEnemy
+    if (!_player->Attack(pEnemy, true) && !(_player->GetVictim() == pEnemy && _player->HasUnitState(UNIT_STATE_MELEE_ATTACKING)))
     {
-        // attack was not started (e.g. target is evading, player is mounted) - stop attack state at client
-        _player->SendMeleeAttackStop(pEnemy);
+        if (!_player->AttackStop())
+            _player->SendMeleeAttackStop(pEnemy);
     }
 }
 
